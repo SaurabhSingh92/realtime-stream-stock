@@ -14,14 +14,10 @@ def main():
 
     def get_data(i):
         start_date = datetime.strptime("2021-05-01", "%Y-%m-%d") + timedelta(i)
-        end_date = start_date + timedelta(days=7)
-        if start_date == datetime.date:
-            print("Current date !! ")
-            exit(0)
-        data = yf.download(tickers='INFY.NS', start=start_date, end=end_date)
-        ax.plot(data.index.values, data['Open'])
+        data = yf.download(tickers='INFY.NS', period="1d", interval="1m")
+        ax.plot(data.index.values, data['Open'], color='green')
 
-    ani = FuncAnimation(fig, get_data, interval=10)
+    ani = FuncAnimation(fig, get_data, interval=1)
     plt.gcf().autofmt_xdate()
     plt.legend()
     plt.grid()

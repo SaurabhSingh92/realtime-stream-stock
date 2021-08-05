@@ -13,7 +13,6 @@ def main():
     fig, ax = plt.subplots()
 
     def get_data(i):
-        start_date = datetime.strptime("2021-05-01", "%Y-%m-%d") + timedelta(i)
         data = yf.download(tickers='INFY.NS', period="1d", interval="1m")
         ax.plot(data.index.values, data['Open'], color='green')
 

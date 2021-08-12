@@ -11,7 +11,7 @@ def main():
     st.set_page_config(page_title="Stock Report", layout="wide")
     st.title("Stock Report - ML/AI")
     st.sidebar.title("Menu")
-    nm = st.sidebar.text_input('Share Name')
+    nm = st.sidebar.text_input('Share Name', value="INFY.NS")
     if nm:
         stk = yf.Ticker(f'{nm}'.upper())
         detail = pd.json_normalize(stk.info)[['longName', 'sector', 'longBusinessSummary',
@@ -37,12 +37,12 @@ def main():
         latest.write()
         opt_title = st.empty()
         opt = st.empty()
-        b1,b2,b3,b4 = st.columns((1,1,2,1))
+        b1,b2,b3,b4,b5 = st.columns((1,1,2,1,1))
         with b1:
             if st.button(label="Major Holder"):
                 share = pd.DataFrame(stk.major_holders).rename(columns={0: "Percentage", 1: "Institutes"})
                 opt_title.subheader("Major Holder Details")
-                opt.write(share)
+                opt.table(share)
         with b2:
             if st.button(label="Events"):
                 event = pd.DataFrame(stk.calendar)
@@ -58,6 +58,10 @@ def main():
                 balance = pd.DataFrame(stk.balancesheet)
                 opt_title.subheader("Yearly Balance Sheet")
                 opt.write(balance.transpose())
+        with b5:
+            if st.button(label="Reset"):
+                opt.empty()
+                opt_title.empty()
 
 
 if __name__ == "__main__":

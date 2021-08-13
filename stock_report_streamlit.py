@@ -87,11 +87,11 @@ def main():
         if opt == "Forcast":
             temp = temp.reset_index()
             temp.rename(columns={'Date':'ds', 'Open' : 'y'}, inplace=True)
-            fday=plt.text_input(label="Enter the days to predict")
+            fday=plt.number_input(label="Enter the days to predict", min_value=1, max_value=900)
             if fday:
                 fmodel= Prophet()
                 fmodel.fit(temp)
-                f_df = fmodel.make_future_dataframe(periods=int(fday))
+                f_df = fmodel.make_future_dataframe(periods=fday)
                 predict = fmodel.predict(f_df)
                 predict['ds'] = pd.to_datetime(predict['ds']).dt.date
                 predict.set_index(keys='ds', inplace=True)

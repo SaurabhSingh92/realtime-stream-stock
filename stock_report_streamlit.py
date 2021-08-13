@@ -44,38 +44,39 @@ def main():
         latest.dataframe(df[:5])
         latest.write()
         st.title("Graphical Representation")
+        temp = get_data(nm).reset_index()
+        temp['Date'] = pd.to_datetime(temp['Date']).dt.date
+        temp.set_index(keys='Date', inplace=True)
+        temp.sort_index(ascending=True, inplace=True)
         plot_opt = st.multiselect(label="Select the feature", options=df.columns)
         plot_sld = st.empty()
         plot_yr = st.empty()
-        temp = df.sort_index(ascending=True)
         if plot_opt:
-            year = plot_sld.select_slider(label="Select the Date Range", options=temp.index)
-            temp = temp.loc[year:temp.index[-1]]
+            start, end = plot_sld.select_slider(label="Select the Date Range", options=temp.index, value=[temp.index[0],temp.index[-1]])
+            temp = temp.loc[start:end]
             plot_yr.line_chart(data=temp[plot_opt], use_container_width=True)
-            if year == temp.index[0]:
-                k1, k2, k3, k4, k5 = st.columns((1, 1, 1, 1, 1))
-                with k1:
-                    if st.button(label="YTD"):
-                        year = datetime.datetime.today().replace(month=1, day=1)
-                        temp = temp.loc[year:temp.index[-1]]
-                with k2:
-                    if st.button(label="Last 6 Months"):
-                        year = temp.index[-180]
-                        temp = temp.loc[year:temp.index[-1]]
-                with k3:
-                    if st.button(label="Last 3 Months"):
-                        year = temp.index[-90]
-                        temp = temp.loc[year:temp.index[-1]]
-                with k4:
-                    if st.button(label="Last 30 Days"):
-                        year = temp.index[-30]
-                        temp = temp.loc[year:temp.index[-1]]
-                with k5:
-                    if st.button(label="Last 7 Day"):
-                        year = temp.index[-7]
-                        temp = temp.loc[year:temp.index[-1]]
-
-                plot_yr.line_chart(data=temp[plot_opt], use_container_width=True)
+            k1, k2, k3, k4, k5 = st.columns((1, 1, 1, 1, 1))
+            with k1:
+                if st.button(label="YTD"):
+                    year = datetime.date.today().replace(month=1,day=1)
+                    temp = temp.loc[year:temp.index[-1]]
+            with k2:
+                if st.button(label="Last 6 Months"):
+                    year = temp.index[-180]
+                    temp = temp.loc[year:temp.index[-1]]
+            with k3:
+                if st.button(label="Last 3 Months"):
+                    year = temp.index[-90]
+                    temp = temp.loc[year:temp.index[-1]]
+            with k4:
+                if st.button(label="Last 30 Days"):
+                    year = temp.index[-30]
+                    temp = temp.loc[year:temp.index[-1]]
+            with k5:
+                if st.button(label="Last 7 Day"):
+                    year = temp.index[-7]
+                    temp = temp.loc[year:temp.index[-1]]
+            plot_yr.line_chart(data=temp[plot_opt], use_container_width=True)
         st.title("Know more about stock")
         opt_title = st.empty()
         opt = st.empty()

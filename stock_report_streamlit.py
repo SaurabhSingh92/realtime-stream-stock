@@ -1,5 +1,5 @@
 import datetime
-
+from fbprophet import Prophet
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -15,9 +15,13 @@ def get_daily(nm):
     data = yf.download(tickers=nm, period='1d', interval='1m').sort_index(ascending=False)
     return data
 
+# @st.cache
+# def get_prediction():
+
+
 def main():
     st.set_page_config(page_title="Stock Report", layout="wide")
-    st.title("Stock Report ")
+    st.title("Stock Report - Predictive Model")
     st.sidebar.title("Menu")
     nm = st.sidebar.text_input('Enter the Share Name', value="INFY.NS")
     if nm:
@@ -43,40 +47,60 @@ def main():
         latest = st.expander(label="Last 5 min stock price")
         latest.dataframe(df[:5])
         latest.write()
-        st.title("Graphical Representation")
+        plt = st.expander(label="Graphical Representation")
         temp = get_data(nm).reset_index()
         temp['Date'] = pd.to_datetime(temp['Date']).dt.date
         temp.set_index(keys='Date', inplace=True)
         temp.sort_index(ascending=True, inplace=True)
-        plot_opt = st.multiselect(label="Select the feature", options=df.columns)
-        plot_sld = st.empty()
-        plot_yr = st.empty()
-        if plot_opt:
-            start, end = plot_sld.select_slider(label="Select the Date Range", options=temp.index, value=[temp.index[0],temp.index[-1]])
-            temp = temp.loc[start:end]
-            plot_yr.line_chart(data=temp[plot_opt], use_container_width=True)
-            k1, k2, k3, k4, k5 = st.columns((1, 1, 1, 1, 1))
-            with k1:
-                if st.button(label="YTD"):
-                    year = datetime.date.today().replace(month=1,day=1)
-                    temp = temp.loc[year:temp.index[-1]]
-            with k2:
-                if st.button(label="Last 6 Months"):
-                    year = temp.index[-180]
-                    temp = temp.loc[year:temp.index[-1]]
-            with k3:
-                if st.button(label="Last 3 Months"):
-                    year = temp.index[-90]
-                    temp = temp.loc[year:temp.index[-1]]
-            with k4:
-                if st.button(label="Last 30 Days"):
-                    year = temp.index[-30]
-                    temp = temp.loc[year:temp.index[-1]]
-            with k5:
-                if st.button(label="Last 7 Day"):
-                    year = temp.index[-7]
-                    temp = temp.loc[year:temp.index[-1]]
-            plot_yr.line_chart(data=temp[plot_opt], use_container_width=True)
+        opt = plt.radio(label="Select the presentation mode", options=['Historical', 'Forcast'])
+        plot_opt = plt.empty()
+        if opt == "Historical":
+            plot_opt = plt.multiselect(label="Select the feature", options=df.columns)
+            plot_sld = plt.empty()
+            plot_yr = plt.empty()
+            if plot_opt:
+                start, end = plot_sld.select_slider(label="Select the Date Range", options=temp.index, value=[temp.index[0],temp.index[-1]])
+                temp = temp.loc[start:end]
+                plot_yr.line_chart(data=temp[plot_opt], use_container_width=True)
+                k1, k2, k3, k4, k5 = plt.columns((1, 1, 1, 1, 1))
+                with k1:
+                    if st.button(label="YTD"):
+                        year = datetime.date.today().replace(month=1,day=1)
+                        temp = temp.loc[year:temp.index[-1]]
+                with k2:
+                    if st.button(label="Last 6 Months"):
+                        year = temp.index[-180]
+                        temp = temp.loc[year:temp.index[-1]]
+                with k3:
+                    if st.button(label="Last 3 Months"):
+                        year = temp.index[-90]
+                        temp = temp.loc[year:temp.index[-1]]
+                with k4:
+                    if st.button(label="Last 30 Days"):
+                        year = temp.index[-30]
+                        temp = temp.loc[year:temp.index[-1]]
+                with k5:
+                    if st.button(label="Last 7 Day"):
+                        year = temp.index[-7]
+                        temp = temp.loc[year:temp.index[-1]]
+                plot_yr.line_chart(data=temp[plot_opt], use_container_width=True)
+        if opt == "Forcast":
+            temp = temp.reset_index()
+            temp.rename(columns={'Date':'ds', 'Open' : 'y'}, inplace=True)
+            fday=plt.text_input(label="Enter the days to predict")
+            if fday:
+                fmodel= Prophet()
+                fmodel.fit(temp)
+                f_df = fmodel.make_future_dataframe(periods=int(fday))
+                predict = fmodel.predict(f_df)
+                predict['ds'] = pd.to_datetime(predict['ds']).dt.date
+                predict.set_index(keys='ds', inplace=True)
+                temp.set_index(keys='ds', inplace=True)
+                temp.rename(columns={'y':'Open'}, inplace=True)
+                predict = pd.concat([predict, temp['Open']], axis=1)
+                plot_opt = plt.multiselect(label="Select the feature", options=predict.columns
+                                           , default='trend')
+                plt.line_chart(data=predict[plot_opt], use_container_width=True)
         st.title("Know more about stock")
         opt_title = st.empty()
         opt = st.empty()

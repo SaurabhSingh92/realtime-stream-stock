@@ -1,4 +1,4 @@
-pystan
+pystan==2.19.1.1
 yfinance
 fbprophet==0.7.1
 pandas

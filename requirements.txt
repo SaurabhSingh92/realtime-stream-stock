@@ -1,3 +1,4 @@
+pystan
 yfinance
 fbprophet==0.7.1
 pandas
